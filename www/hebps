@@ -1,0 +1,18 @@
+#!/bin/sh
+# Hebrew PostScript calendar shell script
+#
+# This file is part of REMIND.
+# Copyright (C) 1992-1997 by David F. Skoll
+# Copyright (C) 1999-2000 by Roaring Penguin Software Inc.
+
+# Figure out the month:  If day <= 20, use this month; otherwise, use
+# next month.
+echo "Content-type: application/postscript"
+echo ""
+
+$REMIND - <<EOR
+BANNER %
+REM 20 ++40 RUN $REMIND -iHTML=0 -p $DIR/hebdate.rem %m %y | $REM2PS -e -c3 -l
+EOR
+
+exit 0

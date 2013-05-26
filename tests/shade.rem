@@ -1,0 +1,30 @@
+set $MinsFromUTC -240
+set $CalcUTC 0
+set $Location "Ottawa"
+set $LongDeg 75
+set $LongMin 39
+set $LongSec 0
+set $LatDeg 45
+set $LatMin 24
+set $LatSec 0
+
+IF $PSCAL
+	[trigger(moondate(0))] SPECIAL MOON 0 -1 -1 [moontime(0)]
+	[trigger(moondate(1))] SPECIAL MOON 1 -1 -1 [moontime(1)]
+	[trigger(moondate(2))] SPECIAL MOON 2 -1 -1 [moontime(2)]
+	[trigger(moondate(3))] SPECIAL MOON 3 -1 -1 [moontime(3)]
+ENDIF
+
+REM 4 PS (First-Bit-Of-PS)
+REM 4 PSFILE file.ps
+REM 4 PS (Third-Bit-Of-PS)
+REM 4 PSFILE file2.ps
+
+REM Mon SPECIAL SHADE 255 255 255
+REM Tue SPECIAL SHADE 255 255 204
+REM Wed SPECIAL SHADE 255 204 255
+REM Thu SPECIAL SHADE 204 255 255
+REM Fri SPECIAL SHADE 255 204 204
+REM Sat SPECIAL SHADE 204 255 204
+REM Sun SPECIAL SHADE 204 204 255
+

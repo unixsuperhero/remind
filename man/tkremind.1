@@ -1,0 +1,376 @@
+.TH TKREMIND 1 "15 February 1998"
+.UC 4
+.SH NAME
+tkremind \- graphical front-end to Remind calendar program
+.SH SYNOPSIS
+.B tkremind \fR[\fIoptions\fR] [\fIread_file\fR] [\fIwrite_file\fR]
+.SH DESCRIPTION
+\fBTkRemind\fR is a graphical front-end to the \fBRemind\fR program.
+It provides a friendly graphical interface which allows you to view
+your calendar and add reminders without learning the syntax of \fBRemind\fR.
+Although not all of \fBRemind\fR's features are available with \fBTkRemind\fR,
+\fBTkRemind\fR gives you an opportunity to edit the reminder commands which
+it creates.  This allows you to learn \fBRemind\fR's syntax and then add
+extra features as you become a more sophisticated \fBRemind\fR programmer.
+
+\fBTkRemind\fR is written in Tcl, and requires version 8.0
+(or higher).  It also requires a \fBwish\fR binary.
+
+.SH OPTIONS
+\fBTkRemind\fR itself has no options.  However, it passes certain options
+on to \fBRemind\fR.  The options it passes are
+\fB\-b\fR, \fB\-g\fR, \fB\-x\fR, \fB\-i\fR and \fB\-m\fR.
+See the \fBRemind\fR man page for details about the options.
+Note that \fBTkRemind\fR will respect the \fB\-m\fR and
+\fB\-b1\fR options and adjust its appearance accordingly.
+
+\fIRead_file\fR is the file from which \fBTkRemind\fR reads reminders.
+It is in standard \fBRemind\fR format.  \fIWrite_file\fR is the file
+to which \fBTkRemind\fR writes reminders which you add using the GUI.
+If \fIRead_file\fR is omitted, it defaults to \fB$HOME/.reminders\fR.
+If \fIWrite_file\fR is omitted, it defaults to \fIRead_file\fR.
+
+You may wish to have a different \fIWrite_file\fR from \fIRead_file\fR if
+you want to collect all of \fBTkRemind\fR's reminders in one place.  Suppose
+your main file is \fI$HOME/.reminders\fR and you want \fBTkRemind\fR to put
+its reminders in \fI$HOME/.tkreminders\fR.  In \fI$HOME/.reminders\fR,
+include the line:
+.PP
+.nf
+	INCLUDE [getenv("HOME")]/.tkreminders
+.fi
+.PP
+
+.SH THE CALENDAR WINDOW
+When you start \fBTkRemind\fR, it displays a calendar for the current
+month, with today's date highlighted.  Reminders are filled into each
+box on the calendar.  If a box contains many reminders, you can scroll
+it up and down by dragging mouse button 2 in the box.  Note that there
+is no specific indication of an over-full box; you'll just have to
+notice that the box appears completely full.
+
+.SH NAVIGATING
+To change to the previous or next month, click the \fB<\-\fR
+or \fB\->\fR button, respectively.  To change back to
+the current month, click \fBToday\fR.  To go to a specific month,
+click \fBGo To Date...\fR.  This pops up a dialog box which allows you
+to select a month and enter a year.  Once you've done this, click
+\fBGo\fR to go to the date, or \fBCancel\fR to cancel.
+
+To exit \fBTkRemind\fR, click \fBQuit\fR.
+
+.SH ADDING REMINDERS
+To add a reminder, click button 1 in any day number in the calendar.
+The \fBAdd Reminder...\fR dialog will pop up, with values preselected for
+the day you clicked.
+
+The dialog has six basic groups of controls.  The first three lines
+select one of three types of reminders.  Choose the type of reminder
+with the radio buttons, and choose the values of the days, months, and
+years by selecting values from pull-down menus.  The pull-down menus
+appear when you click the raised value buttons.
+
+The next control specifies an expiry date for the reminder.  Select
+the check button to enable an expiry date, and fill in the values
+using pull-down menus.
+
+The third control specifies how much advance notice you want (if any),
+and whether or not weekends and holidays are counted when computing advance
+notice.
+
+The fourth control specifies which days \fBRemind\fR considers
+as part of the weekend.  This can affect the interpretation of "weekday"
+in the second and third types of reminders.
+
+The fifth control associates a time with the reminder.
+You can also specify advance notice, possibly repeating.
+
+The sixth control specifies what \fBRemind\fR should do if a reminder
+falls on a holiday or weekend.
+
+Enter the body of the reminder into the \fBBody:\fR text entry.
+
+To add the reminder to the reminder file, click \fBAdd to reminder file\fR.
+To close the dialog without adding the reminder to the file, click
+\fBCancel\fR.  To preview the reminder, click \fBPreview reminder\fR.
+This pops up the \fBPreview reminder\fR dialog box.
+
+.SH PREVIEWING REMINDERS
+The \fBPreview reminder\fR dialog box is an excellent way to learn
+\fBRemind\fR.  It displays the \fBRemind\fR command which realizes the
+reminder you entered using the \fBAdd Reminder...\fR dialog.  You can
+edit the reminder, thereby gaining access to advanced features of
+\fBRemind\fR.  You can also use it simply to play around and discover
+\fBRemind\fR's idioms for expressing different types of reminders.
+
+.SH PRINTING
+To print the current month's calender, click \fBPrint...\fR on the
+main calendar window.  This brings up the print dialog.  Printing
+either produces a PostScript file or sends PostScript to a UNIX command.
+
+Select the print destination by choosing either \fBTo file:\fR or
+\fBTo command:\fR in the print dialog.  Press \fBBrowse...\fR to bring
+up a file browser.  In the file browser, you can enter a filename in
+the text entry, double-click on a filename in the listbox, or
+double-click on a directory to navigate the file system.  You can also
+type the first few characters of a file name in the text entry box and
+press space to complete the name to the first matching entry.
+
+The \fBMatch:\fR box contains a filename wildcard which filters files
+in the listbox.  You can change the filter and press enter to rescan
+the directory.
+
+Select the appropriate paper size and orientation.  Activate
+\fBFill page\fR if you want the calendar to fill the page.  This should
+be the normal case unless you have many reminders in a particular
+day.  (See the \fBRem2PS\fR documentation.)
+
+Finally, click \fBPrint\fR to print or \fBCancel\fR to cancel.
+Note that during printing, \fBRemind\fR is \fInot\fR called with
+the \fB-itkremind=1\fR option, because it is operated in normal
+PostScript-producing mode.
+
+.SH EDITING REMINDERS
+
+If you created a reminder with \fBTkRemind\fR, it will turn red as the
+mouse cursor passes over it in the calendar window.  Click
+button-1 over the reminder and you will be presented with a dialog
+window whose state is identical to the one used to create the reminder.
+At this point, you can change the reminder by editing the dialog
+entries and selecting \fBReplace reminder\fR.  You can delete the
+reminder entirely by selecting \fBDelete reminder\fR.  The remaining
+buttons, \fBPreview reminder\fR and \fBCancel\fR operate identically
+to the dialog in "ADDING REMINDERS."
+
+Note that if you edit a reminder (using \fBPreview reminder\fR),
+any edits you made are \fInot\fR retained in the dialog box.  You
+should not attempt to edit such reminders; you have to retype them
+in the \fBPreview reminder\fR dialog.
+
+If the reminder was not created with \fBTkRemind\fR, you can't edit
+it with \fBTkRemind\fR.
+
+.SH USING A TEXT EDITOR
+
+If you have set the "text editor" option correctly, right-clicking
+on a reminder will bring up a text editor on the file containing
+the reminder.  The cursor will be positioned on the line that
+generated the reminder.
+
+.SH BACKGROUND REMINDERS
+
+If you create "timed" reminders, \fBTkRemind\fR will queue them in
+the background and pop up boxes as they are triggered.  Additionally,
+if you created the reminder using \fBTkRemind\fR, you will be given the
+option of "turning off" the reminder for the rest of the day.
+\fBTkRemind\fR achieves queueing of background reminders by running
+\fBRemind\fR in \fIserver mode\fR, described later.
+
+.SH OPTIONS
+
+The final button on the calendar window, \fBOptions\fR, lets you configure
+certain aspects of \fBTkRemind\fR.  The configuration options are:
+
+.TP
+.B Start up Iconified
+If this is selected, \fBTkRemind\fR starts up iconified.  Otherwise,
+it starts up in a normal window.
+
+.TP
+.B Show Today's Reminders on Startup
+If this is selected, \fBTkRemind\fR shows a text window containing reminders
+which would be issued by "remind \-q \-a \-r" on startup, and when the date
+changes at midnight.
+
+.TP
+.B Confirm Quit
+If this is selected, you will be asked to confirm when you press
+\fBQuit\fR.  If not, \fBTkRemind\fR quits without prompting.
+
+.TP
+.B Automatically close pop-up reminders after a minute
+If this is selected, pop-up reminder boxes will be closed after one minute
+has elapsed.  Otherwise, they remain on your screen forever until you
+explicitly dismiss them.
+
+.TP
+.B Beep terminal when popping up a reminder
+If selected, \fBTkRemind\fR beeps the terminal bell when a queued reminder
+pops up.
+
+.TP
+.B Deiconify calendar window when popping up a reminder
+If selected, does what it says.
+
+.TP
+.B Run command when popping up a reminder
+If this entry is not blank, the specified command is run whenever a
+background reminder pops up.
+
+.TP
+.B Feed popped-up reminder to command's standard input
+If selected, feeds the text of the reminder to the command described
+above.
+
+.TP
+.B E-mail reminders here if popup not dismissed
+If you enter a non-blank e-mail address in this field, then \fBTkRemind\fR
+will e-mail you a reminder if you don't dismiss the popup box within
+one minute.  This is useful if you need to leave your terminal but
+want your reminders to "follow" you via e-mail.
+
+.TP
+.B Name or IP address of SMTP server
+\fBTkRemind\fR uses a direct SMTP connection to send mail.  Enter the
+IP address of your SMTP server here.
+
+.TP
+.B Text Editor
+This specifies a text editor to invoke when a reminder is right-clicked.
+The characters "%d" are replaced with the lined number of the file
+containing the reminder, and "%s" are replaced with the file name.
+Useful strings might be "emacs +%d %s" or "gvim +%d %s"
+
+.PP
+Once you've configured the options the way you like them,
+press \fBApply Options\fR to put them into effect, \fBSave Options\fR
+to put them into effect and save them in $HOME/.tkremindrc, or
+\fBCancel\fR to cancel any changes you made.
+
+.SH KEYBOARD SHORTCUTS
+\fBTkRemind\fR's main window includes the following keyboard shortcuts:
+
+.TP
+.B Ctrl-Q
+Quit
+.TP
+.B Left Arrow
+Previous Month
+.TP
+.B Right Arrow
+Next Month
+.TP
+.B Home
+Today
+
+.SH ODDS AND ENDS
+\fBTkRemind\fR performs some basic consistency checks when you add or
+preview a reminder.  However, if you edit a reminder in the previewer,
+\fBTkRemind\fR does \fInot\fR check the edited reminder.  You can
+produce illegal reminders which may cause problems.  (This is one good
+reason to isolate \fBTkRemind\fR's reminders in a separate file.)
+.PP
+\fBTkRemind\fR does \fInot\fR check the body of the reminder in any
+way.  You can use the normal \fBRemind\fR substitution sequences in
+the body.  Furthermore, if you use expression-pasting in the body,
+\fBTkRemind\fR does \fInot\fR validate the expressions.
+.PP
+When \fBTkRemind\fR invokes \fBRemind\fR, it supplies the option:
+.PP
+.nf
+	\-itkremind=1
+.fi
+.PP
+on the command line.  So, in your \fBRemind\fR file, you can include:
+.PP
+.nf
+	IF defined("tkremind")
+		# Then I'm probably being invoked by TkRemind
+	ENDIF
+.fi
+.PP
+You can use this to activate certain reminders in different ways
+for \fBTkRemind\fR (for example).
+.PP
+\fBTkRemind\fR uses tags to keep track of reminders in the
+script file.  It also places special comments in the reminder
+file to store additional state.  You can certainly mix
+"hand-crafted" reminders with reminders created by \fBTkRemind\fR
+if you are aware of the following rules and limitations:
+.TP
+o
+\fBTkRemind\fR uses \fBTAG\fRs of the form \fBTKTAG\fR\fInnn\fR
+where \fInnn\fR is a number.  You should not use such \fBTAG\fRs
+in hand-crafted reminders.
+.TP
+o
+Do not edit lines starting with "# TKTAGnnn", "# TKEND", or any
+lines in between.  You can move such lines, but be careful to move
+them as a single block.
+.TP
+o
+Hand-crafted reminders cannot be edited with \fBTkRemind\fR, and
+for hand-crafted timed reminders, you will not be presented with
+the "Don't remind me again" option when they pop up.
+
+.SH SERVER MODE
+
+\fBRemind\fR has a special mode for interacting with programs like
+\fBTkRemind\fR.  This mode is called \fIserver mode\fR and is
+selected by supplying the \fB\-z0\fR option to \fBRemind\fR.
+
+In server mode, \fBRemind\fR operates similar to daemon mode, except
+it reads commands (one per line)
+from standard input and writes status lines to standard output.
+
+The commands accepted in server mode are:
+
+.TP
+EXIT
+Terminate the \fBRemind\fR process.  EOF on standard input does the
+same thing.
+
+.TP
+STATUS
+Return the number of queued reminders.
+
+.TP
+REREAD
+Re-read the reminder file
+
+.PP
+The status lines written are as follows:
+
+.TP
+ NOTE reminder \fItime\fR \fItag\fR
+Signifies the beginning of a timed reminder whose trigger time is
+\fItime\fR with tag \fItag\fR.  If the reminder has no tag, an
+asterisk is supplied for \fItag\fR.  All lines following this line
+are the body of the reminder, until the line \fBNOTE endreminder\fR
+is transmitted.
+
+.TP
+NOTE newdate
+This line is emitted whenever \fBRemind\fR has detected a rollover of
+the system date.  The front-end program should redraw its calendar
+or take whatever other action is needed.
+
+.TP
+NOTE reread
+This line is emitted whenever the number of reminders in \fBRemind\fR's
+queue changes because of a date rollover or a \fBREREAD\fR command.
+The front-end should issue a \fBSTATUS\fR command in response to this
+message.
+
+.TP
+NOTE queued \fIn\fR
+This line is emitted in response to a \fBSTATUS\fR command.  The number
+\fIn\fR is the number of reminders in the queue.
+
+.SH AUTHOR
+TkRemind is now supported by Roaring Penguin Software
+Inc. (http://www.roaringpenguin.com)
+.PP
+TkRemind was written by David F. Skoll <dfs@roaringpenguin.com>.
+
+\fBTkRemind\fR is Copyright 1996-1998 by David F. Skoll, Copyright
+1999 by Roaring Penguin Software Inc.
+
+.SH FILES
+
+$HOME/.reminders -- default reminder file.
+
+$HOME/.tkremindrc -- \fBTkRemind\fR saved options.
+
+.SH SEE ALSO
+remind, rem2ps

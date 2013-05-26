@@ -1,0 +1,594 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+my %Options;
+
+my $rem2html_version = '2.0';
+
+my($days, $shades, $moons, $classes, $Month, $Year, $Numdays, $Firstwkday, $Mondayfirst, $weeks,
+    @Daynames, $Nextmon, $Nextlen, $Prevmon, $Prevlen);
+
+my $TIDY_PROGNAME = $0;
+$TIDY_PROGNAME =~ s|^.*/||;
+
+# rem2html -- convert the output of "remind -p" to HTML
+
+=head1 NAME
+
+rem2html - Convert the output of "remind -p" to HTML
+
+=head1 SYNOPSIS
+
+remind -p ... | rem2html [options]
+
+=head1 OPTIONS
+
+=over 4
+
+=item --help, -h
+
+Print usage information
+
+=item --version
+
+Print version
+
+=item --backurl I<url>
+
+When producing the small calendar for the previous month, make the
+month name a link to I<url>.
+
+=item --forwurl I<url>
+
+When producing the small calendar for the next month, make the
+month name a link to I<url>.
+
+=item --imgbase I<url>
+
+When creating URLs for images and the stylesheet, use
+I<url> as the base URL.
+
+=item --stylesheet I<url.css>
+
+Use I<url.css> as the stylesheet.  If this option is used,
+I<url.css> is I<not> interpreted relative to B<imgbase>.
+
+=item --nostyle
+
+Produce basic HTML that does not use a CSS stylesheet.
+
+=item --tableonly
+
+Output results as a E<lt>tableE<gt> ... E<lt>/tableE<gt> sequence only
+without any E<lt>htmlE<gt> or E<lt>bodyE<gt> tags.
+
+=item --title I<title>
+
+Use I<title> as the content between E<lt>titleE<gt> and E<lt>/titleE<gt>
+tags.
+
+
+=item --prologue I<html_text>
+
+Insert I<html_text> right after the E<lt>bodyE<gt> tag.
+
+=item --epilogue I<html_text>
+
+Insert I<html_text> right before the E<lt>/bodyE<gt> tag.
+
+=back
+
+=head1 AUTHOR
+
+rem2html was written by David F. Skoll with much inspiration from an
+earlier version by Don Schwarz.
+
+=cut
+
+sub usage
+{
+    my ($exit_status) = @_;
+    if (!defined($exit_status)) {
+	    $exit_status = 1;
+    }
+    print STDERR <<"EOM";
+$TIDY_PROGNAME: Produce an HTML calendar from the output of "remind -p"
+
+Usage: remind -p ... | rem2html [options]
+
+Options:
+
+--help, -h            Print usage information
+--man                 Show man page (requires "perldoc")
+--version             Print version
+--backurl url         Make the title on the previous month's small calendar
+                      entry a link to <url>
+--forwurl url         Same as --backurl, but for the next month's small calendar
+--imgbase url         Base URL of images and default stylesheet file
+--stylesheet url.css  URL of CSS stylesheet.  If specified, imgbase is NOT
+                      prepended to url.css
+--nostyle             Produce basic HTML that does not use a CSS stylesheet
+--tableonly           Output results as a <table> only, no <html>, <body>, etc.
+--title string        What to put in <title>...</title> tags
+--prologue html_text  Text to insert at the top of the body
+--epilogue html_text  Text to insert at the end of the body
+EOM
+    exit($exit_status);
+}
+
+sub parse_options
+{
+    local $SIG{__WARN__} = sub { print STDERR "$TIDY_PROGNAME: $_[0]\n"; };
+    if (!GetOptions(\%Options, "help|h",
+		    "man",
+		    "version",
+		    "stylesheet=s",
+		    "nostyle",
+		    "backurl=s",
+		    "forwurl=s",
+		    "title=s",
+		    "prologue=s",
+		    "epilogue=s",
+		    "imgbase=s",
+		    "tableonly")) {
+	usage(1);
+    }
+    $Options{'title'} ||= 'HTML Calendar';
+
+    # Fix up imgbase
+    my $imgbase = '%IMAGEBASE%';
+    if ($imgbase ne '%' . 'IMAGEBASE' . '%') {
+	    $Options{'imgbase'} ||= $imgbase;
+    } else {
+	    $Options{'imgbase'} ||= '';
+    }
+
+    $Options{'imgbase'} =~ s|/+$||;
+    my $stylesheet = $Options{'imgbase'};
+    $stylesheet .= '/' if ($stylesheet ne '');
+    $stylesheet .= 'rem-default.css';
+    $Options{'stylesheet'} ||= $stylesheet;
+}
+
+sub start_output
+{
+    return if ($Options{'tableonly'});
+
+    print("<html>\n<head>\n<title>" . $Options{'title'} . "</title>\n");
+    if (!$Options{'nostyle'}) {
+	if ($Options{'stylesheet'}) {
+	    print('<link rel="stylesheet" type="text/css" href="' .
+		  $Options{'stylesheet'} . '">' . "\n");
+	}
+    }
+    print("</head>\n<body>\n");
+    if ($Options{'prologue'}) {
+	print $Options{'prologue'} . "\n";
+    }
+}
+
+sub end_output
+{
+    return if ($Options{'tableonly'});
+    if ($Options{'epilogue'}) {
+	print $Options{'epilogue'} . "\n";
+    }
+    print("</body>\n</html>\n");
+}
+
+sub parse_input
+{
+    undef $days;
+    undef $shades;
+    undef $moons;
+    undef $classes;
+    undef $weeks;
+
+    my $found_data = 0;
+    while(<STDIN>) {
+	chomp;
+	last if /^\# rem2ps begin$/;
+    }
+
+    my $line;
+    # Month Year numdays firstday monday_first_flag
+    $line = <STDIN>;
+    return 0 unless $line;
+    chomp($line);
+    ($Month, $Year, $Numdays, $Firstwkday, $Mondayfirst) = split(' ', $line);
+
+    # Day names
+    $line = <STDIN>;
+    return 0 unless $line;
+    chomp($line);
+    @Daynames = split(' ', $line);
+
+    # Prevmon prevlen
+    $line = <STDIN>;
+    return 0 unless $line;
+    chomp($line);
+    ($Prevmon, $Prevlen) = split(' ', $line);
+
+    # Nextmon nextlen
+    $line = <STDIN>;
+    return 0 unless $line;
+    chomp($line);
+    ($Nextmon, $Nextlen) = split(' ', $line);
+
+    $found_data = 1;
+    my $class;
+    if ($Options{'nostyle'}) {
+	$class = '';
+    } else {
+	$class = ' class="rem-entry"';
+    }
+    while(<STDIN>) {
+	chomp;
+	last if /^\# rem2ps end$/;
+	next if /^\#/;
+	next unless m/^(\d*).(\d*).(\d*)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s*(.*)$/;
+	my ($y, $m, $d, $special, $tag, $duration, $time, $body) =
+	    ($1, $2, $3, $4, $5, $6, $7, $8);
+	my $d1 = $d;
+	$d1 =~ s/^0+//;
+	if ($special eq 'HTML') {
+	    push(@{$days->[$d]}, $body);
+	} elsif ($special eq 'HTMLCLASS') {
+	    $classes->[$d] = $body;
+	} elsif ($special eq 'WEEK') {
+		$body =~ s/^\s+//;
+		$body =~ s/\s+$//;
+		$weeks->{$d1} = $body;
+	} elsif ($special eq 'MOON') {
+		if ($body =~ /(\S+)\s+(\S+)\s+(\S+)\s+(.*)$/) {
+			my ($phase, $moonsize, $fontsize, $msg) = ($1, $2, $3, $4);
+			$moons->[$d]->{'phase'} = $phase;
+			$moons->[$d]->{'msg'} = $msg;
+		} elsif ($body =~ /(\S+)/) {
+			$moons->[$d]->{'phase'} = $1;
+			$moons->[$d]->{'msg'} = '';
+		}
+	} elsif ($special eq 'SHADE') {
+		if ($body =~ /(\d+)\s+(\d+)\s+(\d+)/) {
+			$shades->[$d] = sprintf("#%02X%02X%02X",
+						($1 % 256), ($2 % 256), ($3 % 256));
+		}
+	} elsif ($special eq 'COLOR' || $special eq 'COLOUR') {
+		if ($body =~ /(\d+)\s+(\d+)\s+(\d+)\s+(.*)$/) {
+			my($r, $g, $b, $text) = ($1, $2, $3, $4);
+			my $color = sprintf("style=\"color: #%02X%02X%02X;\"",
+					    $r % 256, $g % 256, $b % 256);
+			push(@{$days->[$d]}, "<p$class $color>" . escape_html($text) . '</p>');
+		}
+	} elsif ($special eq '*') {
+	    push(@{$days->[$d]}, "<p$class>" . escape_html($body) . '</p>');
+	}
+    }
+    return $found_data;
+}
+
+sub small_calendar
+{
+	my($month, $monlen, $url, $first_col) = @_;
+	if ($Mondayfirst) {
+		$first_col--;
+		if ($first_col < 0) {
+			$first_col = 6;
+		}
+	}
+
+	if ($Options{'nostyle'}) {
+	    print "<td width=\"14%\">\n";
+	    print "<table border=\"0\">\n";
+	    print "<caption>";
+	} else {
+	    print "<td class=\"rem-small-calendar\">\n";
+	    print "<table class=\"rem-sc-table\">\n";
+	    print "<caption class=\"rem-sc-caption\">";
+	}
+	print "<a href=\"$url\">" if ($url);
+	print $month;
+	print "</a>" if ($url);
+	print "</caption>\n";
+
+	my $class;
+	if ($Options{'nostyle'}) {
+	    print '<tr>';
+	    $class = ' align="right"';
+	} else {
+	    print '<tr class="rem-sc-hdr-row">';
+	    $class = ' class="rem-sc-hdr"';
+	}
+	if (!$Mondayfirst) {
+		print "<th$class>" . substr($Daynames[0], 0, 1) . '</th>';
+	}
+	for (my $i=1; $i<7; $i++) {
+		print "<th$class>" . substr($Daynames[$i], 0, 1) . '</th>';
+	}
+	if ($Mondayfirst) {
+		print "<th$class>" . substr($Daynames[0], 0, 1) . '</th>';
+	}
+	print("</tr>\n");
+	my $col = 0;
+	for (; $col<$first_col; $col++) {
+		if ($col == 0) {
+			print("<tr>\n");
+		}
+		if ($Options{'nostyle'}) {
+		    print("<td align=\"right\" width=\"14%\">&nbsp;</td>");
+		} else {
+		    print("<td class=\"rem-sc-empty-cell\">&nbsp;</td>");
+		}
+	}
+
+	for (my $day=1; $day <= $monlen; $day++) {
+		if ($col == 0) {
+			print("<tr>\n");
+		}
+		$col++;
+		if ($Options{'nostyle'}) {
+		    print("<td align=\"right\" width=\"14%\">$day</td>");
+		} else {
+		    print("<td class=\"rem-sc-cell\">$day</td>");
+		}
+		if ($col == 7) {
+			print("</tr>\n");
+			$col = 0;
+		}
+	}
+	if ($col) {
+	    while ($col < 7) {
+		if ($Options{'nostyle'}) {
+		    print("<td align=\"right\" width=\"14%\">&nbsp;</td>");
+		} else {
+		    print("<td class=\"rem-sc-empty-cell\">&nbsp;</td>");
+		}
+		$col++;
+	    }
+	    print("</tr>\n");
+	}
+	print("</table>\n");
+	print "</td>\n";
+}
+
+sub output_calendar
+{
+    # Which column is 1st of month in?
+    my $first_col = $Firstwkday;
+    if ($Mondayfirst) {
+	$first_col--;
+	if ($first_col < 0) {
+	    $first_col = 6;
+	}
+    }
+
+    # Last column
+    my $last_col = ($first_col + $Numdays - 1) % 7;
+
+    # Start the table
+    my $class;
+    if ($Options{'nostyle'}) {
+	print '<table width="100%" border="1" cellspacing=\"0\"><caption>' .
+	    $Month . ' ' . $Year . '</caption>' . "\n";
+	print '<tr>';
+	$class = ' width="14%"';
+    } else {
+	print '<table class="rem-cal"><caption class="rem-cal-caption">' .
+	    $Month . ' ' . $Year . '</caption>' . "\n";
+	print '<tr class="rem-cal-hdr-row">';
+	$class = ' class="rem-cal-hdr"';
+    }
+    if (!$Mondayfirst) {
+	print "<th$class>" . $Daynames[0] . '</th>';
+    }
+    for (my $i=1; $i<7; $i++) {
+	print "<th$class>" . $Daynames[$i] . '</th>';
+    }
+    if ($Mondayfirst) {
+	print "<th$class>" . $Daynames[0] . '</th>';
+    }
+    print "</tr>\n";
+
+    # Start the calendar rows
+    my $col = 0;
+    if ($Options{'nostyle'}) {
+	print "<tr>\n";
+    } else {
+	print "<tr class=\"rem-cal-row\">\n";
+    }
+    if ($first_col > 0) {
+	small_calendar($Prevmon, $Prevlen, $Options{'backurl'},
+		       ($Firstwkday - $Prevlen + 35) % 7);
+	$col++;
+    }
+
+    if ($last_col == 6 && $first_col > 0) {
+	small_calendar($Nextmon, $Nextlen, $Options{'forwurl'},
+		       ($Firstwkday + $Numdays) % 7);
+	$col++;
+    }
+    if ($Options{'nostyle'}) {
+	$class = ' width="14%"';
+    } else {
+	$class = ' class="rem-empty"';
+    }
+    while ($col < $first_col) {
+	print("<td$class>&nbsp;</td>\n");
+	$col++;
+    }
+
+    for (my $day=1; $day<=$Numdays; $day++) {
+	draw_day_cell($day);
+	$col++;
+	if ($col == 7) {
+	    $col = 0;
+	    print "</tr>\n";
+	    if ($day < $Numdays) {
+		if ($Options{'nostyle'}) {
+		    print "<tr>\n";
+		} else {
+		    print "<tr class=\"rem-cal-row\">\n";
+		}
+	    }
+	}
+    }
+
+    if ($col) {
+	while ($col < 7) {
+	    if ($col == 5) {
+		if ($first_col == 0) {
+		    small_calendar($Prevmon, $Prevlen, $Options{'backurl'},
+				   ($Firstwkday - $Prevlen + 35) % 7);
+		} else {
+		    print("<td$class>&nbsp;</td>\n");
+		}
+	    } elsif ($col == 6) {
+		small_calendar($Nextmon, $Nextlen, $Options{'forwurl'},
+			       ($Firstwkday + $Numdays) % 7);
+	    } else {
+		print("<td$class>&nbsp;</td>\n");
+	    }
+	    $col++;
+	}
+	print "</tr>\n";
+    }
+
+    # Add a row for small calendars if they were not yet done!
+    if ($first_col == 0 && $last_col == 6) {
+	    if ($Options{'nostyle'}) {
+		    print "<tr>\n";
+	    } else {
+		    print "<tr class=\"rem-cal-row\">\n";
+	    }
+	    small_calendar($Prevmon, $Prevlen, $Options{'backurl'},
+			   ($Firstwkday - $Prevlen + 35) % 7);
+	    for (my $i=0; $i<5; $i++) {
+		print("<td$class>&nbsp;</td>\n");
+	    }
+	    small_calendar($Nextmon, $Nextlen, $Options{'forwurl'},
+			   ($Firstwkday + $Numdays) % 7);
+	    print("</tr>\n");
+    }
+    # End the table
+    print "</table>\n";
+}
+
+sub draw_day_cell
+{
+    my($day) = @_;
+    my $shade = $shades->[$day];
+    my $week = '';
+    if (exists($weeks->{$day})) {
+	    $week = ' ' . $weeks->{$day};
+    }
+    my $class;
+    if ($Options{'nostyle'}) {
+	$class = $classes->[$day] || '';
+    } else {
+	$class = $classes->[$day] || "rem-cell";
+    }
+    if ($shade) {
+	    $shade = " style=\"background: $shade;\"";
+    } else {
+	    $shade = "";
+    }
+    if ($class ne '') {
+	print "<td class=\"$class\"$shade>\n";
+    } else {
+	print "<td valign=\"top\" $shade>\n";
+    }
+    if ($moons->[$day]) {
+	    my $phase = $moons->[$day]->{'phase'};
+	    my $msg = $moons->[$day]->{'msg'};
+	    $msg ||= '';
+	    if ($msg ne '') {
+		    $msg = '&nbsp;' . escape_html($msg);
+	    }
+	    my $img;
+	    my $alt;
+	    my $title;
+	    if ($phase == 0) {
+		    $img = 'newmoon.png';
+		    $title = 'New Moon';
+		    $alt = 'new';
+	    } elsif ($phase == 1) {
+		    $img = 'firstquarter.png';
+		    $title = 'First Quarter';
+		    $alt = '1st';
+	    } elsif ($phase == 2) {
+		    $img = 'fullmoon.png';
+		    $alt = 'full';
+		    $title = 'Full Moon';
+	    } else {
+		    $img = 'lastquarter.png';
+		    $alt = 'last';
+		    $title = 'Last Quarter';
+	    }
+	    if ($Options{'imgbase'}) {
+		    $img = $Options{'imgbase'} . '/' . $img;
+	    }
+	    if ($Options{'nostyle'}) {
+		print("<div style=\"float: left\"><img border=\"0\" width=\"16\" height=\"16\" alt=\"$alt\" title=\"$title\" src=\"$img\">$msg</div>");
+	    } else {
+		print("<div class=\"rem-moon\"><img width=\"16\" height=\"16\" alt=\"$alt\" title=\"$title\" src=\"$img\">$msg</div>");
+	    }
+    }
+
+    if ($Options{'nostyle'}) {
+	print "<div style=\"float: right\">$day$week</div>\n";
+	print "<p>&nbsp;</p>\n";
+    } else {
+	print "<div class=\"rem-daynumber\">$day$week</div>\n";
+    }
+    if ($days->[$day]) {
+	    print(join("\n", @{$days->[$day]}));
+    }
+
+    print "</td>\n";
+}
+
+sub escape_html
+{
+    my($in) = @_;
+    $in =~ s/\&/\&amp;/g;
+    $in =~ s/\</\&lt;/g;
+    $in =~ s/\>/\&gt;/g;
+    return $in;
+}
+
+parse_options();
+if ($Options{'help'}) {
+    usage(0);
+    exit(0);
+} elsif ($Options{'man'}) {
+    system("perldoc $0");
+    exit(0);
+} elsif ($Options{'version'}) {
+    print "rem2html version $rem2html_version.\n";
+    exit(0);
+}
+
+if (-t STDIN) {
+    print STDERR "$TIDY_PROGNAME: Input should not come from a terminal.\n\n";
+    usage(1);
+}
+
+my $found_something = 0;
+while(1) {
+    last if (!parse_input());
+    start_output() unless $found_something;
+    $found_something = 1;
+    output_calendar();
+}
+if ($found_something) {
+    end_output();
+    exit(0);
+} else {
+    print STDERR "$TIDY_PROGNAME: Could not find any calendar data on STDIN.\n";
+    exit(1);
+}
+

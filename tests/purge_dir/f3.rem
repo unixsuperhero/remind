@@ -1,0 +1,92 @@
+# This is f3.rem
+
+REM Mon MSG repeat
+
+REM Mon SATISFY [1] MSG repeat
+
+IF 0
+REM 1991 MSG wookie
+ENDIF
+
+IF 1
+REM 1991 MSG wookie
+ENDIF
+
+IFTRIG 1991
+REM MSG wookie
+ENDIF
+
+# More complex conditional statements
+IF 1
+  IF 0
+    REM 1991 MSG wookie
+  ELSE
+    REM 1991 MSG wookie
+  ENDIF
+ELSE
+  IF 1
+    REM 1991 MSG wookie
+  ELSE
+    REM 1991 MSG wookie
+  ENDIF
+ENDIF
+
+REM [1990+1] MSG old-with-constant-expression
+
+REM [1990+1] \
+  MSG Continued line-old-with-constant-expression
+
+REM 1990 \
+  MSG expired-continued-line
+
+set y 1990
+
+REM [y+1] MSG old-with-nonconstant-expression
+
+# A comment that should be preserved
+
+#!P A comment that should be nuked because it \
+starts with #!P
+
+REM [y+1] \
+  MSG Continued-line-old-with-nonconstant-expression
+
+OMIT 25 Dec MSG woaaahh!
+OMIT 24 Dec
+
+OMIT 1 Jan 1992 MSG woaaahah... expired
+OMIT 2 Jan 1992
+
+# Complicated expressions
+SET a 3
+FSET const(x) x+3
+FSET nonconst(x) x+a
+
+REM [const(5)] Jan 1992 MSG expired... should be commented out
+REM [const(a)] Jan 1992 MSG nonconstant expression
+REM [nonconst(5)] Jan 1992 MSG nonconstant expression
+REM [value("a")] Jan 1992 MSG nonconstant expression
+
+IF 0
+# A comment in a false IF block
+#!P This should be nuked
+ENDIF
+
+# Busted line
+REM [0/0] Jan 1992 MSG ouch
+
+ERRMSG blorky
+FLUSH
+SET a 1
+FSET a(x) x*x
+UNSET a
+CLEAR-OMIT-CONTEXT
+PUSH-OMIT-CONTEXT
+POP-OMIT-CONTEXT
+BANNER wow
+DEBUG +x
+DEBUG -x
+DUMP $
+EXIT 0
+PRESERVE i
+

@@ -1,0 +1,95 @@
+# Makefile.in for REMIND
+#
+
+SHELL= /bin/sh
+BETA = 1
+srcdir=@srcdir@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+mandir=@mandir@
+bindir=@bindir@
+datadir=@datadir@
+datarootdir=@datarootdir@
+VPATH=$(srcdir)
+VERSION=@VERSION@
+
+INSTALL=@INSTALL@
+INSTALL_PROGRAM=@INSTALL_PROGRAM@
+INSTALL_DATA=@INSTALL_DATA@
+
+PROGS=		remind rem2ps
+SCRIPTS=	$(srcdir)/../scripts/tkremind $(srcdir)/../scripts/cm2rem.tcl
+
+MANS=		$(srcdir)/../man/rem2ps.1 $(srcdir)/../man/remind.1 \
+		$(srcdir)/../man/tkremind.1 $(srcdir)/../man/cm2rem.1 \
+		$(srcdir)/../man/rem.1
+
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+REMINDSRCS=	calendar.c dynbuf.c dorem.c dosubst.c expr.c files.c funcs.c \
+		globals.c hbcal.c init.c main.c md5.c moon.c omit.c queue.c \
+		sort.c token.c trigger.c userfns.c utils.c var.c
+
+REMINDHDRS=config.h custom.h dynbuf.h err.h expr.h globals.h lang.h \
+	   md5.h protos.h rem2ps.h types.h version.h
+REMINDOBJS= $(REMINDSRCS:.c=.o)
+
+all: remind rem2ps
+
+test: remind
+	@sh ../tests/test-rem
+
+.c.o:
+	@CC@ -c @CPPFLAGS@ @CFLAGS@ @DEFS@ $(CEXTRA) $(LANGDEF) -I. -I$(srcdir) $<
+
+rem2ps: rem2ps.o dynbuf.o
+	@CC@ @LDFLAGS@ $(LDEXTRA) -o rem2ps rem2ps.o dynbuf.o
+
+remind: $(REMINDOBJS)
+	@CC@ @LDFLAGS@ $(LDEXTRA) -o remind $(REMINDOBJS) @LIBS@
+
+install-nostripped: all
+	-mkdir -p $(DESTDIR)$(bindir) || true
+	for prog in $(PROGS) $(SCRIPTS) ; do \
+		$(INSTALL_PROGRAM) $$prog $(DESTDIR)$(bindir) || exit 1; \
+	done
+	rm -f $(DESTDIR)$(bindir)/rem > /dev/null 2>&1 || true
+	ln -s remind $(DESTDIR)$(bindir)/rem
+	-mkdir -p $(DESTDIR)$(mandir)/man1 || true
+	for man in $(MANS) ; do  \
+		$(INSTALL_DATA) $$man $(DESTDIR)$(mandir)/man1 || exit 1; \
+	done
+
+install: install-nostripped
+	strip $(DESTDIR)$(bindir)/remind || true
+	strip $(DESTDIR)$(bindir)/rem2ps || true
+
+clean:
+	rm -f *.o *~ core *.bak $(PROGS)
+
+clobber:
+	rm -f *.o *~ remind rem2ps test.out core *.bak
+
+depend:
+	gccmakedep @DEFS@ $(REMINDSRCS) rem2ps.c
+
+# The next targets are not very useful to you.  I use them to build
+# distributions, etc.
+
+# Build a tar file based on all files checked into git.
+distro:
+	ln -s . ../remind-$(VERSION)
+	(cd ..; git ls-files | fgrep -v .gitignore | fgrep -v remind.php) | sed -e 's/^/remind-$(VERSION)\//' | xargs tar -C .. -cvf remind-$(VERSION).tar
+	gzip -f -v -9 remind-$(VERSION).tar
+	rm -f ../remind-$(VERSION)
+
+beta-tgz:
+	ln -s . ../remind-$(VERSION)-BETA-$(BETA)
+	(cd ..; git ls-files | fgrep -v .gitignore | fgrep -v remind.php) | sed -e 's/^/remind-$(VERSION)-BETA-$(BETA)\//' | xargs tar -C .. -cvf remind-$(VERSION)-BETA-$(BETA).tar
+	gzip -f -v -9 remind-$(VERSION)-BETA-$(BETA).tar
+	rm -f ../remind-$(VERSION)-BETA-$(BETA)
+
+#---------------- Stuff after this added by "make depend" -----------------
+
+

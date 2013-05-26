@@ -1,0 +1,29 @@
+<HTML>
+<!-- Sample HTML file with links to the calendar stuff -->
+<HEAD>
+<TITLE>Remind Calendar Server</TITLE>
+</HEAD>
+
+<BODY>
+<H1>Remind Calendar Server</H1>
+
+<a HREF="%CGIDIR%/cal_dispatch?sunrise">
+Sunrise Information</a><P>
+<a HREF="%CGIDIR%/cal_dispatch?sunset">
+Sunset Information</a><P>
+<a HREF="%CGIDIR%/cal_dispatch?moon">
+Moon Phase Information</a><P>
+<a HREF="%CGIDIR%/cal_dispatch?calps">
+Blank PostScript Calendar</a> (Approximately 20kB)<P>
+<a HREF="%CGIDIR%/cal_dispatch?hebdate">
+Today's Hebrew Date</a><P>
+<a HREF="%CGIDIR%/cal_dispatch?hebps">
+PostScript Calendar with Jewish Holidays</a> (Approximately 35 kB)<P>
+<a HREF="%CGIDIR%/cal_dispatch?hebhtml">
+HTML Calendar with Jewish Holidays</a>
+<HR>
+<a HREF="http://www.roaringpenguin.com/remind">
+Get the Remind software</a> that provides this service.<P>
+
+</BODY>
+</HTML>

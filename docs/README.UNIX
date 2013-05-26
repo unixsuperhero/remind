@@ -1,0 +1,104 @@
+REMIND version 3.1 for UNIX
+
+REMIND is a sophisticated alarm/calendar program.  Details are given
+in the man page, "remind.1".
+
+INSTALLING REMIND:
+-----------------
+
+If you have Tcl/Tk (wish 4.1 or higher) installed and are running X Windows:
+--------------------------------------------------------------
+
+1) Type: wish ./build.tk from the top-level Remind directory.
+   Fill in the various options and hit "Build Remind"
+
+2) Type: "make install" -- you may need to be root to do this.
+
+If you do NOT have Tcl/Tk or are NOT running X Windows:
+-------------------------------------------------------
+
+1) Edit the file "src/custom.h" according to your preferences.
+
+2) Edit the file "src/lang.h" to choose a language.
+
+3) Type: "make"
+
+4) Type: "make install" -- you may need to be root to do this.
+
+The subdirectory "www" contains scripts for making a nice calendar
+web server.  See the files README and Makefile in that directory.
+
+The file "examples/defs.rem" has some sample Remind definitions and
+commands, as well as U.S. and Jewish holidays.
+
+OTHER LANGUAGE SUPPORT
+
+Remind has support for languages other than English.  See the file
+"src/lang.h" for details.  The language support may vary - you can change
+only the substitution filter, or you can translate all of the usage
+instructions and error messages as well.  See "src/langs/french.h" for an
+example of the latter.
+
+To compile Remind for a non-english language, look at the constants
+defined in "src/lang.h".  Then, to compile Remind for Italian (as an
+example), type:
+
+	make "LANGDEF=-DLANG=ITALIAN"
+
+If you add support for a non-English language, Remind will accept both the
+English and non-English names of months and weekdays in an input script.
+However, you should not rely on this feature if you want to write portable
+Remind scripts.
+
+At a minimum, you should support month and day names in the foreign
+language, and should modify the substitution filter appropriately.
+If you are truly diligent, you can translate usage and error messages
+too.
+
+Take a look at the files "src/langs/english.h" and
+"src/langs/german.h" if you want to add support for your favourite
+language.  If you do add another language to Remind, please let me
+know!  Here are the basic guidelines:
+
+- Your language file should be called "src/langs/lxxx.h", where lxxx
+  is the first 8 characters of the ENGLISH name of your language.
+
+- Your language file should define L_LANGNAME to be the full English
+  name of your language, with the first letter capitalized and the rest
+  lower-case.
+
+- You can test your language file with the script "tests/tstlang.rem"
+
+RELEASE NOTES -- miscellaneous info that couldn't go anywhere else!
+
+1. POPUP REMINDERS
+
+If you're running under X-Windows and you have the TCL tools,
+you can create simple pop-up reminders by creating the following
+TCL script called 'popup'.  It pops a message on to the screen and
+waits for you to press the 'OK' button.  If you don't press the OK button
+within 15 seconds, it exits anyway.  To use it, you can use the '-k' option
+for Remind as follows:
+
+	remind "-kpopup '%s'&" .reminders
+
+Or use the following in your Remind script:
+
+	REM AT 17:00 RUN popup 'Time to go home.' &
+
+This Tcl script is a slightly modified version of one submitted by
+Norman Walsh.
+
+-------------- Cut Here ---------- Cut Here ---------- Cut Here -------------
+#!/usr/local/bin/wish
+wm withdraw .
+after 15000 { destroy . ; exit }
+tk_dialog .d { Message } $argv warning 0 { OK } 
+destroy .
+exit
+-------------- Cut Here ---------- Cut Here ---------- Cut Here -------------
+
+
+--
+David F. Skoll <dfs@roaringpenguin.com>
+http://www.roaringpenguin.com/remind/

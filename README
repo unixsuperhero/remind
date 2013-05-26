@@ -1,0 +1,38 @@
+				REMIND
+
+Remind is a full-featured calendar/alarm program.  Copying policy is
+in the file "COPYRIGHT" in this directory.
+
+Installation notes for various operating systems are in "docs".  See
+the appropriate README file for installation on your system.
+
+Manual pages are in "man".
+
+-----------------------------------------------------------------------------
+
+Quick UNIX installation instructions for the very impatient:
+
+If you have Tcl/Tk (wish 4.1 or higher) installed and are running X Windows:
+--------------------------------------------------------------
+
+1) Type: wish ./build.tk from this directory.  Fill in the various
+   options and hit "Build Remind"
+
+2) Type: "make install" -- you may need to be root to do this.
+
+If you do NOT have Tcl/Tk or are NOT running X Windows:
+-------------------------------------------------------
+
+1) Edit the file "src/custom.h" according to your preferences.
+
+2) Edit the file "src/lang.h" to choose a language.
+
+3) Type: "./configure"  (You can supply options; type "./configure --help"
+   for details.)
+
+4) Type: "make"
+
+5) Type: "make install" -- you may need to be root to do this.
+
+Contact info: mailto:dfs@roaringpenguin.com
+Home page:    http://www.roaringpenguin.com/remind

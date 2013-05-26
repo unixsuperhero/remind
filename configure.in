@@ -1,0 +1,80 @@
+dnl Process this file with autoconf to produce a configure script.
+
+AC_INIT(src/queue.c)
+
+cat <<'EOF'
+
+**********************
+*                    *
+* Configuring REMIND *
+*                    *
+**********************
+
+EOF
+
+AC_CONFIG_HEADER(src/config.h)
+
+if test "`uname -s`" = "Darwin" ; then
+   trap 'echo Be patient...' INT TERM
+   cat <<'EOF'
+
+Please don't use Apple products.  This script will continue in 30 seconds
+if you insist on compiling Remind on Mac OS X.
+
+EOF
+    for i in 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 ; do
+        sleep 1
+    done
+    trap - INT
+    trap - TERM
+fi
+
+if uname -s | grep -i -q 'cygwin' ; then
+   trap 'echo Be patient...' INT TERM
+   cat <<'EOF'
+
+Please don't use Microsoft products.  This script will continue in 30
+seconds if you insist on compiling Remind on Cygwin.
+
+EOF
+    for i in 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 ; do
+        sleep 1
+    done
+    trap - INT
+    trap - TERM
+fi
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
+
+dnl Checks for libraries.
+dnl Replace `main' with a function in -lm:
+
+AC_CHECK_LIB(m, sqrt)
+
+dnl Integer sizes
+AC_CHECK_SIZEOF(unsigned short)
+AC_CHECK_SIZEOF(unsigned int)
+AC_CHECK_SIZEOF(unsigned long)
+
+dnl Checks for header files.
+AC_CHECK_HEADERS(sys/file.h glob.h wctype.h locale.h)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_STRUCT_TM
+
+dnl Checks for library functions.
+AC_FUNC_UTIME_NULL
+AC_HEADER_TIME
+
+if test "$GCC" = yes; then
+	CFLAGS="$CFLAGS -Wall -Wstrict-prototypes"
+fi
+
+AC_CHECK_FUNCS(setenv unsetenv glob mbstowcs setlocale)
+VERSION=03.01.13
+AC_SUBST(VERSION)
+AC_OUTPUT(src/Makefile www/Makefile src/version.h)

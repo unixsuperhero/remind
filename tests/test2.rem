@@ -1,0 +1,43 @@
+# Make things sane
+set $TimeSep ":"
+set $DateSep "/"
+set $LatDeg  45 
+set $LatMin  24 
+set $LatSec  0  
+set $Location  "Ottawa"
+set $LongDeg  75
+set $LongMin  39
+set $LongSec  0 
+
+clear-omit-context
+
+omit 14 aug
+
+# Test the SPECIAL COLOR escapes
+REM WED +2 SPECIAL COLOR 0 0 255 %"Blue Wednesday%" is %b
+REM THU SPECIAL COLOR 255 0 0 Red Thursday
+
+# Test SPECIAL SHADE
+REM FRI SPECIAL SHADE 0 255 0
+
+# Test SPECIAL MOON
+REM 12 AUG SPECIAL MOON 0
+
+# Test nonomitted
+REM MSG [nonomitted('2007-08-01', today())] NonOmit-1
+REM MSG [nonomitted('2007-08-01', today(), "Sat", "Sun")] NonOmit-2
+
+# Test SPECIAL COLOR with an AT clause
+REM 20 AUG AT 13:45 SPECIAL COLOR 6 7 8 Mooo!
+
+# Test SPECIAL PostScript with and without AT clause
+REM 21 AUG AT 1:55 SPECIAL PostScript (wookie) show
+REM 22 AUG SPECIAL PostScript (cabbage) show
+
+# Test a random SPECIAL with and without AT
+REM 23 AUG AT 16:44 SPECIAL blort snoo glup
+REM 24 AUG SPECIAL blort gulp wookie
+
+# Bug discovered by Paul Pelzl
+OMIT 13 August
+REM   6 August 2007 *7 SKIP SATISFY [1] MSG Blort
